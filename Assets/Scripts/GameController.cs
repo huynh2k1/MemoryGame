@@ -28,8 +28,11 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         GetButton();
-        PickACard();
+        OnClick();
         AddGamePuzzles();
+        Shuffle(gamePuzzles);
+        gameGuesses = gamePuzzles.Count / 2;
+        Debug.Log(gameGuesses);
     }
 
     public void GetButton()
@@ -75,14 +78,67 @@ public class GameController : MonoBehaviour
         {
             firstPick = true;
             firstPickIndex = int.Parse(UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.name);
+
+            firstPickPuzzle = gamePuzzles[firstPickIndex].name;
+
             buttons[firstPickIndex].image.sprite = gamePuzzles[firstPickIndex];
         }
         else if(!secondPick)
         {
             secondPick = true;
             secondPickIndex = int.Parse(UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.name);
+
+            secondPickPuzzle = gamePuzzles[secondPickIndex].name;
+
             buttons[secondPickIndex].image.sprite = gamePuzzles[secondPickIndex];
+
+            countGusses++;
+
+            StartCoroutine(CheckIsCouple());
+
+        }
+    }
+    //Kiểm tra cặp được chọn có giống nhau không
+    IEnumerator CheckIsCouple()
+    {
+        yield return new WaitForSeconds(1f);
+        if(firstPickPuzzle == secondPickPuzzle)
+        {
+            yield return new WaitForSeconds(0.5f);
+            buttons[firstPickIndex].interactable = false;
+            buttons[secondPickIndex].interactable = false;
+
+            CheckGameOver();
+        }
+        else
+        {
+            buttons[firstPickIndex].image.sprite = btnImage;
+            buttons[secondPickIndex].image.sprite = btnImage;
+
+        }
+        yield return new WaitForSeconds(0.5f);
+
+        firstPick = secondPick = false;
+    }
+    //Kiểm tra game đã kết thúc hay chưa
+    private void CheckGameOver()
+    {
+        countCorrectGuesses++;
+        if(countCorrectGuesses == gameGuesses)//Nếu như số match = số cặp của trò chơi
+        {
+            Debug.Log("End Game!!!");
+            Debug.Log("It took you " + countGusses + "many guess to finish game");
         }
     }
 
+    private void Shuffle(List<Sprite> list)
+    {
+        for(int i = 0; i < list.Count; i++)
+        {
+            Sprite temp = list[i];
+            int randomIndex = Random.Range(0, list.Count);
+            list[i] = list[randomIndex];
+            list[randomIndex] = temp;
+        }
+    }
 }
